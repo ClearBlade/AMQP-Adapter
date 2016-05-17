@@ -20,4 +20,9 @@ struct ConnectionData getConnectionData(uint64_t length, char *packet, int packe
  */
 char *getConcatString(char *str1, char *str2);
 
+/*
+ * Calculates the total length from the 4 bytes in the packet
+ */
+uint64_t getLength(int index, char *packet);
+
 #endif

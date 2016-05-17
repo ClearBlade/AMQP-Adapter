@@ -28,6 +28,10 @@ void *handleClientConnection(void *data) {
 	fd_set read_fds;
 	int i;
 
+	struct Client connectedClient;
+	connectedClient.isAuthenticated = false;
+	connectedClient.mqttClient = NULL;
+
 	FD_ZERO(&read_fds);
 	FD_SET(cli, &read_fds);
 
@@ -53,6 +57,8 @@ void *handleClientConnection(void *data) {
 
 		// Client closed the connection, exit the main loop and close the socket
 		if(rcd == 0) {
+			connectedClient.isAuthenticated = false;
+			connectedClient.mqttClient = NULL;
 			break;
 		}
 		
@@ -62,22 +68,24 @@ void *handleClientConnection(void *data) {
 		}
 		
 		if(packetLength > 0) {
-			struct DecodedPacket status = decodePacket(dataReceived, packetLength); // Parse the incoming packet
+			struct DecodedPacket status = decodePacket(dataReceived, packetLength, &connectedClient); // Parse the incoming packet
 
 			// This check whether the packet was decoded successfully and then sends a response to the client
 			if(status.decodeStatus == DECODE_SUCCESS) {
 				printf("Decode Success\n");
-				if(status.packetType == PROTOCOL_HEADER) {
+				if(status.packetType == PROTOCOL_HEADER && status.class == CONNECTION_LSB) {
 					encodePacket(status.packetType, cli);
-				} else if(status.packetType == CONNECTION_START_OK) {
+				} else if(status.packetType == CONNECTION_START_OK  && status.class == CONNECTION_LSB) {
 					encodePacket(status.packetType, cli);
-				} else if(status.packetType == CONNECTION_OPEN) {
+				} else if(status.packetType == CONNECTION_OPEN  && status.class == CONNECTION_LSB) {
 					encodePacket(status.packetType, cli);
-				} else if(status.packetType == CHANNEL_OPEN) {
+				} else if(status.packetType == CHANNEL_OPEN  && status.class == CHANNEL_LSB) {
 					encodePacket(status.packetType, cli);
 				}
 			} else {
 				printf("Decode unsuccess\n");
+				connectedClient.isAuthenticated = false;
+				connectedClient.mqttClient = NULL;
 				break;
 			}
 		}

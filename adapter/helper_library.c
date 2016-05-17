@@ -160,3 +160,17 @@ char *getConcatString(char *str1, char *str2) {
 
 	return finalString;
 }
+
+/*
+ * Calculates the total length from the 4 bytes in the packet
+ */
+uint64_t getLength(int index, char *packet) {
+	uint64_t MSB = (long) packet[index] << 32;  
+	uint64_t MSB1 = packet[index + 1] << 16;
+	uint64_t LSB1 = packet[index + 2] << 8;
+	uint64_t LSB = packet[index + 3] & 0x000000FF;
+
+	uint64_t total = MSB | MSB1 | LSB1 | LSB;
+
+	return total;
+}

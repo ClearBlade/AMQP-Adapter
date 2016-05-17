@@ -11,12 +11,17 @@
 #define STDBOOL
 #endif
 
+#include "MQTTClient.h"
+
+
 #define METHOD 0x01
 
 #define CONNECTION_MSB 0x00
 #define CONNECTION_LSB 0x0A
 #define CHANNEL_MSB 0x00
 #define CHANNEL_LSB 0x14
+#define BASIC_MSB 0x00
+#define BASIC_LSB 0x3C
 
 #define PROTOCOL_HEADER 0x00
 #define CONNECTION_START 0x0A
@@ -25,8 +30,13 @@
 #define CONNECTION_TUNE_OK 0x1F
 #define CONNECTION_OPEN 0x28
 #define CONNECTION_OPEN_OK 0x29
+#define CONNECTION_CLOSE 0x32
+#define CONNECTION_CLOSE_OK 0x33
 #define CHANNEL_OPEN 0x0A
 #define CHANNEL_OPEN_OK 0x0B
+#define CHANNEL_CLOSE 0x28
+#define CHANNEL_CLOSE_OK 0x29
+#define PUBLISH 0x28
 
 #define FRAME_END 0xCE
 
@@ -34,9 +44,10 @@
 #define DECODE_UNSUCCESS -2
 #define UNKNOWN_PACKET -1
 
-// Struct to store packet type and packet decode error code
+// Struct to store packet type, class and packet decode error code
 struct DecodedPacket {
 	int packetType;
+	int class;
 	int decodeStatus;
 };
 
@@ -47,6 +58,12 @@ struct ConnectionData {
 	char *clientID;
 	char *mqttBrokerAddress;
 	char *mqttPort;
+};
+
+// This stores client ptoperties
+struct Client {
+	bool isAuthenticated;
+	MQTTClient mqttClient;
 };
 
 #endif

@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdbool.h>
+#include <string.h>
 #include "MQTTClient.h"
 
 
@@ -22,4 +23,20 @@ MQTTClient connectToMQTTBroker(char *brokerAddress, char *clientID, char *userna
 	}
 
 	return mqttClient;
+}
+
+/*
+ * Publishes a message to the MQTT broker
+ */
+void publishMQTTMessage(char *topic, char *message, MQTTClient mqttClient) {
+	printf("Came here\n");
+	MQTTClient_message pubmsg = MQTTClient_message_initializer;
+	MQTTClient_deliveryToken token;
+
+	pubmsg.payload = message;
+	pubmsg.payloadlen = strlen(message);
+	pubmsg.qos = 0;
+	pubmsg.retained = 0;
+
+	MQTTClient_publishMessage(mqttClient, topic, &pubmsg, &token);
 }
