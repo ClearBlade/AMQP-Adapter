@@ -136,7 +136,7 @@ int decodeChannelPacket(char *packet, int packetLength, int remainingLength) {
 /*
  * Parses the packet the get the routing-key (topic)
  */
-char *getPublishTopic(char *packet, int packetLength, int *remainingLength) {
+char *getTopic(char *packet, int packetLength, int *remainingLength) {
 	int i = 0;
 	*remainingLength = *remainingLength - 2; // We don't need the Ticket
 	uint16_t topicLengthMSB = (packet[packetLength - *remainingLength] - 0) << 8;
@@ -188,7 +188,7 @@ char *getPublishMessage(char *packet, int packetLength, int *remainingLength) {
 /*
  * Checks the packet for the Publish method and gets the topic and message and forwards it to the MQTT broker
  */
-int decodeBasicPublish(char *packet, int packetLength, int remainingLength, struct Client *client) {
+int decodeBasicPacket(char *packet, int packetLength, int remainingLength, struct Client *client) {
 	if(!client->isAuthenticated) {
 		return -1;
 	}
@@ -204,7 +204,7 @@ int decodeBasicPublish(char *packet, int packetLength, int remainingLength, stru
 	if((packet[packetLength - remainingLength] - 0 == 0x00) && (packet[packetLength - (remainingLength - 1)] - 0 == PUBLISH)) {
 		remainingLength--;
 		remainingLength--;
-		char *topic = getPublishTopic(packet, packetLength, &remainingLength);
+		char *topic = getTopic(packet, packetLength, &remainingLength);
 		if(topic == NULL)
 			return -1;
 
@@ -242,11 +242,35 @@ int decodeBasicPublish(char *packet, int packetLength, int remainingLength, stru
 
 		publishMQTTMessage(topic, message, client->mqttClient);
 
-	} else {
-		return -1;
+		free(topic);
+		free(message);
+
+		return 0;
+
+	} else if((packet[packetLength - remainingLength] - 0 == 0x00) && (packet[packetLength - (remainingLength - 1)] - 0 == CONSUME)) {
+		remainingLength = remainingLength - 4;
+
+		int topicLength = packet[packetLength - remainingLength] - 0;
+		remainingLength--;
+		int i = 0;
+		char *subscribeTopic = malloc(topicLength + 1);
+		while(topicLength > 0) {
+			subscribeTopic[i] = packet[packetLength - remainingLength];
+			i++;
+			topicLength--;
+			remainingLength--;
+		}
+
+		subscribeTopic[i] = '\0';
+		
+		client->consumerTag = "amq.ctag-i-ROwkVXJWOeKSwlzu0YXQ";
+
+		subscribeToMQTTTopic(subscribeTopic, client);
+
+		return 0;
 	}
 
-	return 0;
+	return -1;
 }
 
 
@@ -304,7 +328,7 @@ struct DecodedPacket decodePacket(char *packet, int packetLength, struct Client 
 		} else if((packet[packetLength - (remainingLength + 1)] - 0 == BASIC_MSB) && (packet[packetLength - remainingLength] - 0 == BASIC_LSB)) {
 			remainingLength = remainingLength - 1;
 
-			int basicPublishStatus = decodeBasicPublish(packet, packetLength, remainingLength, connectedClient);
+			int basicPublishStatus = decodeBasicPacket(packet, packetLength, remainingLength, connectedClient);
 
 			if(basicPublishStatus >= 0) {
 				packetDecodeStatus.packetType = packet[10] - 0;
@@ -315,7 +339,10 @@ struct DecodedPacket decodePacket(char *packet, int packetLength, struct Client 
 				packetDecodeStatus.decodeStatus = DECODE_UNSUCCESS;
 			}
 		}
-	} else {
+	} else if(packet[0] - 0 == HEARTBEAT) {
+		packetDecodeStatus.packetLength = HEARTBEAT;
+		packetDecodeStatus.decodeStatus = DECODE_SUCCESS;
+	}else {
 		packetDecodeStatus.packetType = UNKNOWN_PACKET;
 		packetDecodeStatus.decodeStatus = DECODE_UNSUCCESS;
 	}
