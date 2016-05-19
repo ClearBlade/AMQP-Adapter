@@ -42,5 +42,15 @@ factory.setUri("amqp://" + username + ":" + password + "@" + adapterIP + ":5672"
 Connection conn = factory.newConnection();
 Channel channel = conn.createChannel();
 ```  
-Replace the CLEARBLADE_AUTH-TOKEN, CLEARBLADE-SYSTEM-KEY, CLIENT-ID, CLEARBLADE-MESSAGING-URL, CLEARBLADE-MQTT-PORT and ADAPTER-IP with your own. An example of the CLEARBLADE-MESSAGING-URL can be platform.clearblade.com and that of the CLEARBLADE-MQTT-PORT would be 1883. 
+Replace the ```CLEARBLADE_AUTH-TOKEN```, ```CLEARBLADE-SYSTEM-KEY```, ```CLIENT-ID```, ```CLEARBLADE-MESSAGING-URL```, ```CLEARBLADE-MQTT-PORT``` and ```ADAPTER-IP``` with your own. An example of the ```CLEARBLADE-MESSAGING-URL``` can be __platform.clearblade.com__ and that of the ```CLEARBLADE-MQTT-PORT``` would be __1883__.   
+
+#### Publishing Messages  
+```java
+String topic = "YOUR_TOPIC";
+String message = "YOUR_MESSAGE";
+
+channel.basicPublish("", topic, null, message.getBytes());
+```
+
+Replace ```YOUR_TOPIC``` and ```YOUR_MESSAGE``` with the topic and message of your choice.  
 
