@@ -16,4 +16,6 @@ MQTTClient connectToMQTTBroker(char *brokerAddress, char *clientID, char *userna
  */
 void publishMQTTMessage(char *topic, char *message, MQTTClient mqttClient);
 
+void subscribeToMQTTTopic(char *topic, MQTTClient mqttClient);
+
 #endif
