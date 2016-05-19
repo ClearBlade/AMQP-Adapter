@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include "amqp.h"
@@ -125,17 +126,139 @@ void sendChannelOpenOK(int client) {
 	send(client, buff, 16, 0);
 }
 
+void sendConsumeOK(int client) {
+	char buff[44];
+
+	buff[0] = METHOD;
+	buff[1] = 0x00;
+	buff[2] = 0x01;
+	buff[3] = 0x00;
+	buff[4] = 0x00;
+	buff[5] = 0x00;
+	buff[6] = 0x24;
+	buff[7] = BASIC_MSB;
+	buff[8] = BASIC_LSB;
+	buff[9] = 0x00;
+	buff[10] = CONSUME_OK;
+	buff[11] = 0x1F;
+
+	char *tag = "amq.ctag-i-ROwkVXJWOeKSwlzu0YXQ";
+	int i = 12;
+	int n = 0;
+
+	for(i = 12; i < 43; i++) {
+		buff[i] = tag[n];
+		n++;
+	}
+
+	buff[43] = FRAME_END;
+
+	send(client, buff, 44, 0);
+}
+
+/*
+ * Sends a message arrived on a subscribed topic back to the AMQP consumer
+ */
+void sendBasicDeliver(char *routingKey, char *payload, int client) {
+	int buffLength = 47 + strlen(routingKey);
+	char buff[];
+
+	buff[0] = METHOD;
+	buff[1] = 0x00;
+	buff[2] = 0x01;
+	buff[3] = 0x00;
+	buff[4] = 0x00;
+	buff[5] = 0x00;
+	buff[6] = 0x33;
+	buff[7] = BASIC_MSB;
+	buff[8] = BASIC_LSB;
+	buff[9] = 0x00;
+	buff[10] = DELIVER;
+	buff[11] = 0x1F;
+
+	char *tag = "amq.ctag-i-ROwkVXJWOeKSwlzu0YXQ";
+	int i = 12;
+	int n = 0;
+
+	for(i = 12; i < 43; i++) {
+		buff[i] = tag[n];
+		n++;
+	}
+
+	buff[43] = 0x00;
+	buff[44] = 0x00;
+	buff[45] = 0x00;
+	buff[46] = 0x00;
+	buff[47] = 0x00;
+	buff[48] = 0x00;
+	buff[49] = 0x00;
+	buff[50] = 0x01;
+	buff[51] = 0x00;
+	buff[52] = strlen(routingKey) >> 8;
+	buff[53] = strlen(routingKey);
+
+	i = 54;
+	n = 0;
+
+	for(i = 54; i < (strlen(routingKey) + 54); i++) {
+		buff[i] = routingKey[n];
+		n++;
+	}
+
+	buff[i] = FRAME_END;
+	i++;
+	buff[i] = 0x02; // Content-header
+	i++;
+	buff[i] = 0x00;
+	i++;
+	buff[i] = 0x01;
+	i++;
+	buff[i] = 0x00;
+	i++;
+	buff[i] = 0x00;
+	i++;
+	buff[i] = 0x00;
+	i++;
+	buff[i] = 0x0E;
+	i++;
+	buff[i] = BASIC_MSB;
+	i++;
+	buff[i] = BASIC_LSB;
+	i++;
+	buff[i] = 0x00;
+	i++;
+	buff[i] = 0x00;
+	i++;
+	buff[i] = strlen(payload) >> 1024;
+	i++;
+	buff[i] = strlen(payload) >> 512;
+	i++;
+	buff[i] = strlen(payload) >> 128;
+	i++;
+	buff[i] = strlen(payload) >> 64;
+	i++;
+	buff[i] = strlen(payload) >> 16;
+	i++;
+	buff[i] = strlen(payload) >> 8;
+	i++;
+	buff[i] = strlen(payload) >> 1024;
+	i++;
+
+}
+
 /* 
  * This constructs and sends responses back to the AMQP client
  */
-void encodePacket(int packetType, int client) {
-	if(packetType == PROTOCOL_HEADER) {
+void encodePacket(int packetType, int packetClass, int client) {
+	if(packetType == PROTOCOL_HEADER && packetClass == CONNECTION_LSB) {
 		sendConnectionStart(client);
-	} else if(packetType == CONNECTION_START_OK) {
+	} else if(packetType == CONNECTION_START_OK && packetClass == CONNECTION_LSB) {
 		sendConnectionTune(client);
-	} else if(packetType == CONNECTION_OPEN) {
+	} else if(packetType == CONNECTION_OPEN && packetClass == CONNECTION_LSB) {
 		sendConnectionOpenOK(client);
-	} else if(packetType == CHANNEL_OPEN) {
+	} else if(packetType == CHANNEL_OPEN && packetClass == CHANNEL_LSB) {
 		sendChannelOpenOK(client);
+	} else if(packetType == CONSUME && packetClass == BASIC_LSB) {
+		sendConsumeOK(client);
 	}
 }
