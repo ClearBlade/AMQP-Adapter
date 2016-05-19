@@ -8,6 +8,7 @@
 #include <string.h>
 #include <netdb.h>
 #include <pthread.h>
+#include "amqp.h"
 #include "connection_handler.h"
 
 /*

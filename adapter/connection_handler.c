@@ -31,6 +31,7 @@ void *handleClientConnection(void *data) {
 	struct Client connectedClient;
 	connectedClient.isAuthenticated = false;
 	connectedClient.mqttClient = NULL;
+	connectedClient.clientSocket = cli;
 
 	FD_ZERO(&read_fds);
 	FD_SET(cli, &read_fds);
@@ -59,6 +60,7 @@ void *handleClientConnection(void *data) {
 		if(rcd == 0) {
 			connectedClient.isAuthenticated = false;
 			connectedClient.mqttClient = NULL;
+			connectedClient.clientSocket = -1;
 			break;
 		}
 		
@@ -74,18 +76,21 @@ void *handleClientConnection(void *data) {
 			if(status.decodeStatus == DECODE_SUCCESS) {
 				printf("Decode Success\n");
 				if(status.packetType == PROTOCOL_HEADER && status.class == CONNECTION_LSB) {
-					encodePacket(status.packetType, cli);
+					encodePacket(status.packetType, status.class, cli);
 				} else if(status.packetType == CONNECTION_START_OK  && status.class == CONNECTION_LSB) {
-					encodePacket(status.packetType, cli);
+					encodePacket(status.packetType, status.class, cli);
 				} else if(status.packetType == CONNECTION_OPEN  && status.class == CONNECTION_LSB) {
-					encodePacket(status.packetType, cli);
+					encodePacket(status.packetType, status.class, cli);
 				} else if(status.packetType == CHANNEL_OPEN  && status.class == CHANNEL_LSB) {
-					encodePacket(status.packetType, cli);
+					encodePacket(status.packetType, status.class, cli);
+				} else if(status.packetType == CONSUME && status.class == BASIC_LSB) {
+					encodePacket(status.packetType, status.class, cli);
 				}
 			} else {
 				printf("Decode unsuccess\n");
 				connectedClient.isAuthenticated = false;
 				connectedClient.mqttClient = NULL;
+				connectedClient.clientSocket = -1;
 				break;
 			}
 		}

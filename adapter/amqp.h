@@ -13,7 +13,6 @@
 
 #include "MQTTClient.h"
 
-
 #define METHOD 0x01
 
 #define CONNECTION_MSB 0x00
@@ -23,6 +22,7 @@
 #define BASIC_MSB 0x00
 #define BASIC_LSB 0x3C
 
+#define HEARTBEAT 0x08
 #define PROTOCOL_HEADER 0x00
 #define CONNECTION_START 0x0A
 #define CONNECTION_START_OK 0x0B
@@ -37,6 +37,9 @@
 #define CHANNEL_CLOSE 0x28
 #define CHANNEL_CLOSE_OK 0x29
 #define PUBLISH 0x28
+#define CONSUME 0x14
+#define CONSUME_OK 0x15
+#define DELIVER 0x3C
 
 #define FRAME_END 0xCE
 
@@ -64,6 +67,8 @@ struct ConnectionData {
 struct Client {
 	bool isAuthenticated;
 	MQTTClient mqttClient;
+	int clientSocket;
 };
+
 
 #endif
