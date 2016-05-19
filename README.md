@@ -17,6 +17,16 @@ You must use the exact syntax of the RabbitMQ Java client as described below:
 
 #### Connecting to the Adapter  
 ```java
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.util.concurrent.TimeoutException;
+
+import com.rabbitmq.client.ConnectionFactory;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.Channel;
+
 String username = "CLEARBLADE_AUTH-TOKEN";
 String systemKey = "CLEARBLADE-SYSTEM-KEY";
 String mqttClientID = "CLIENT-ID";
