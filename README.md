@@ -54,3 +54,33 @@ channel.basicPublish("", topic, null, message.getBytes());
 
 Replace ```YOUR_TOPIC``` and ```YOUR_MESSAGE``` with the topic and message of your choice.  
 
+#### Subscribing to Topics  
+```java
+import com.rabbitmq.client.AMQP;
+import com.rabbitmq.client.Consumer;
+import com.rabbitmq.client.DefaultConsumer;
+import com.rabbitmq.client.Envelope;
+
+String topic = "YOUR_TOPIC";
+
+Consumer consumer = new DefaultConsumer(channel) {
+  @Override
+	public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body)
+	throws IOException {
+	  String message = new String(body, "UTF-8");
+		System.out.println(" [x] Received '" + message + "'");
+		}
+	};
+	
+channel.basicConsume(topic, true, consumer);
+```
+Replace ```YOUR_TOPIC``` with the topic of your choice.  
+
+#### Disconnecting from the Adapter  
+```java
+channel.close();
+conn.close();
+```  
+
+
+
