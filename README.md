@@ -42,7 +42,7 @@ factory.setUri("amqp://" + username + ":" + password + "@" + adapterIP + ":5672"
 Connection conn = factory.newConnection();
 Channel channel = conn.createChannel();
 ```  
-Replace the ```CLEARBLADE_AUTH-TOKEN```, ```CLEARBLADE-SYSTEM-KEY```, ```CLIENT-ID```, ```CLEARBLADE-MESSAGING-URL```, ```CLEARBLADE-MQTT-PORT``` and ```ADAPTER-IP``` with your own. An example of the ```CLEARBLADE-MESSAGING-URL``` can be __platform.clearblade.com__ and that of the ```CLEARBLADE-MQTT-PORT``` would be __1883__.   
+Replace the ```CLEARBLADE_AUTH-TOKEN```, ```CLEARBLADE-SYSTEM-KEY```, ```CLIENT-ID```, ```CLEARBLADE-MESSAGING-URL```, ```CLEARBLADE-MQTT-PORT``` and ```ADAPTER-IP``` with your own. An example of the ```CLEARBLADE-MESSAGING-URL``` can be __platform.clearblade.com__ and that of the ```CLEARBLADE-MQTT-PORT``` would be __1883__. You can either get a ClearBlade AuthToken manually at http://docs.clearblade.com/v/2/static/restapi/index.html or you can have your application or device fetch it using one of our SDKs at https://github.com/ClearBlade.
 
 #### Publishing Messages  
 ```java
