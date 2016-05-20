@@ -28,36 +28,41 @@ void startAdapter() {
 	hints.ai_flags = AI_PASSIVE;	// Fill my IP for me
 
 	if((status = getaddrinfo(NULL, "5672", &hints, &res)) != 0) {
-		fprintf(stderr, "getaddrinfo error: %s\n", gai_strerror(status));
+		fprintf(stderr, "getaddrinfo() error: %s\n", gai_strerror(status));
     	exit(1);
 	}
 
+	printf("Creating Socket.......");
+
 	if((sock = socket(res->ai_family, res->ai_socktype, res->ai_protocol)) == -1) {
-		perror("socket: ");
+		perror("Socket: ");
 		exit(-1);
 	}
 
-	printf("Creating Socket.......OK\n");
+	printf("OK\n");
 
 	if((bind(sock, res->ai_addr, res->ai_addrlen)) == -1) {
-		perror("bind: ");
+		perror("Bind: ");
 		exit(-1);
 	}
 
 	freeaddrinfo(res);	// Free the res pointer
 
+	printf("Listening on port 5672.......");
+
 	if((listen(sock, 8)) == -1) {
-		perror("listen: ");
+		perror("Listen: ");
 		exit(-1);
 	}
 
-	printf("Listening on port 5672.......OK\n");
+	printf("OK\n");
+
 	 /*
 	  * This is the main server loop. It creates a new thread to handle each client connection
 	  */
 	while(1) {
 		if((cli = accept(sock, (struct sockaddr *)&their_addr, &addr_size)) == -1) {
-			perror("accept: ");
+			perror("Accept: ");
 			exit(-1);
 		}
 		printf("Client connected: Identifier - %d\n", cli);

@@ -85,6 +85,8 @@ void *handleClientConnection(void *data) {
 					encodePacket(status.packetType, status.class, cli);
 				} else if(status.packetType == CONSUME && status.class == BASIC_LSB) {
 					encodePacket(status.packetType, status.class, cli);
+				} else if(status.packetType == HEARTBEAT && status.class == HEARTBEAT_CLASS) {
+					// Do nothing
 				}
 			} else {
 				printf("Decode unsuccess\n");

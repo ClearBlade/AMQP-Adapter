@@ -21,6 +21,7 @@
 #define CHANNEL_LSB 0x14
 #define BASIC_MSB 0x00
 #define BASIC_LSB 0x3C
+#define HEARTBEAT_CLASS 0x88
 
 #define HEARTBEAT 0x08
 #define PROTOCOL_HEADER 0x00
