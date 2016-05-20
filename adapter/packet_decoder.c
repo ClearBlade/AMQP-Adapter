@@ -262,8 +262,6 @@ int decodeBasicPacket(char *packet, int packetLength, int remainingLength, struc
 		}
 
 		subscribeTopic[i] = '\0';
-		
-		client->consumerTag = "amq.ctag-i-ROwkVXJWOeKSwlzu0YXQ";
 
 		subscribeToMQTTTopic(subscribeTopic, client);
 
@@ -339,10 +337,10 @@ struct DecodedPacket decodePacket(char *packet, int packetLength, struct Client 
 				packetDecodeStatus.decodeStatus = DECODE_UNSUCCESS;
 			}
 		}
-	} else if(packet[0] - 0 == HEARTBEAT) {
-		packetDecodeStatus.packetLength = HEARTBEAT;
-		packetDecodeStatus.decodeStatus = DECODE_SUCCESS;
-	}else {
+	// } else if(packet[0] - 0 == HEARTBEAT) {
+	// 	packetDecodeStatus.packetType = HEARTBEAT;
+	// 	packetDecodeStatus.decodeStatus = DECODE_SUCCESS;
+	} else {
 		packetDecodeStatus.packetType = UNKNOWN_PACKET;
 		packetDecodeStatus.decodeStatus = DECODE_UNSUCCESS;
 	}
