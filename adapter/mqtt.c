@@ -19,7 +19,7 @@ int clientSocket;
 int messageArrived(void *context, char *topicName, int topicLen, MQTTClient_message *message) {
 	msgArrived = true;
 
-	sendBasicDeliver(topicName, (char *) message->payload, int clientSocket);
+	sendBasicDeliver(topicName, (char *) message->payload, clientSocket);
 
 	return 1;
 }
@@ -70,7 +70,6 @@ void *subscribe(void *data) {
 
 	}
 
-	free(sub->topic);
 	pthread_exit(0);
 }
 
