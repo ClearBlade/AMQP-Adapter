@@ -160,8 +160,8 @@ void sendConsumeOK(int client) {
  * Sends a message arrived on a subscribed topic back to the AMQP consumer
  */
 void sendBasicDeliver(char *routingKey, char *payload, int client) {
-	int buffLength = 47 + strlen(routingKey);
-	char buff[];
+	int buffLength = 55 + strlen(routingKey) + 22 + 8 + strlen(payload);
+	char buff[buffLength + 1];
 
 	buff[0] = METHOD;
 	buff[1] = 0x00;
@@ -195,7 +195,7 @@ void sendBasicDeliver(char *routingKey, char *payload, int client) {
 	buff[50] = 0x01;
 	buff[51] = 0x00;
 	buff[52] = strlen(routingKey) >> 8;
-	buff[53] = strlen(routingKey);
+	buff[53] = strlen(routingKey) & 0x00FF;
 
 	i = 54;
 	n = 0;
@@ -229,21 +229,52 @@ void sendBasicDeliver(char *routingKey, char *payload, int client) {
 	i++;
 	buff[i] = 0x00;
 	i++;
-	buff[i] = strlen(payload) >> 1024;
+	buff[i] = strlen(payload) >> 56;
 	i++;
-	buff[i] = strlen(payload) >> 512;
+	buff[i] = strlen(payload) >> 48;
 	i++;
-	buff[i] = strlen(payload) >> 128;
+	buff[i] = strlen(payload) >> 40;
 	i++;
-	buff[i] = strlen(payload) >> 64;
+	buff[i] = strlen(payload) >> 32;
+	i++;
+	buff[i] = strlen(payload) >> 24;
 	i++;
 	buff[i] = strlen(payload) >> 16;
 	i++;
 	buff[i] = strlen(payload) >> 8;
 	i++;
-	buff[i] = strlen(payload) >> 1024;
+	buff[i] = strlen(payload) & 0x00000000000000FF;
+	i++;
+	buff[i] = 0x00;
+	i++;
+	buff[i] = 0x00;
+	i++;
+	buff[i] = FRAME_END;
+	i++;
+	buff[i] = 0x03; // Content-body
+	i++;
+	buff[i] = 0x00;
+	i++;
+	buff[i] = 0x01;
+	i++;
+	buff[i] = strlen(payload) >> 24;
+	i++;
+	buff[i] = strlen(payload) >> 16;
+	i++;
+	buff[i] = strlen(payload) >> 8;
+	i++;
+	buff[i] = strlen(payload) & 0x000000FF;
 	i++;
 
+	int l = 0;
+	for(n = i; n < (strlen(payload) + i); n++) {
+		buff[n] = payload[l];
+		l++;
+	}
+
+	buff[n] = FRAME_END;
+
+	send(client, buff, buffLength + 1, 0);
 }
 
 /* 
