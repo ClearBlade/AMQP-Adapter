@@ -124,8 +124,6 @@ struct ConnectionData getConnectionData(uint64_t length, char *packet, int packe
 	    asprintf(&address, "%s", *(tokens + 2));
 	    asprintf(&port, "%s", *(tokens + 3));
 
-
-
 	    connectionData.password = password;
 	    connectionData.clientID = clientID;
 	    connectionData.mqttBrokerAddress = address;
