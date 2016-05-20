@@ -56,11 +56,17 @@ int decodeConnectionPacket(char *packet, int packetLength, int remainingLength, 
 			return -1;
 		}
 
-		// I have hardcoded this. This is dangerous. The correct way is to parse the entire packet. This needs to be changed
-		// This is taking 4 packets of 1 byte each and combining them to give the 4 byte length of the auth data
-		uint64_t authDataLength = getLength(366, packet);
+		remainingLength = remainingLength - 2;
+		uint64_t propertiesLength = getLength(packetLength - remainingLength, packet);
+		remainingLength = remainingLength - 4;
+		remainingLength = packetLength - ((packetLength - remainingLength) + propertiesLength); // Remaining length after properties. We don't need properties
+		int mechanismLength = packet[packetLength - remainingLength] - 0;
+		remainingLength--;
+		remainingLength = remainingLength - mechanismLength; // We don't need the mechanism
 
-		remainingLength = packetLength - 370; // This also is hardcoded for testing
+		uint64_t authDataLength = getLength(packetLength - remainingLength, packet);
+
+		remainingLength = remainingLength - 4;
 
 		struct ConnectionData connectionData = getConnectionData(authDataLength, packet, packetLength, remainingLength); // Get the mqtt connection details
 		if(connectionData.username == NULL) {
@@ -72,9 +78,7 @@ int decodeConnectionPacket(char *packet, int packetLength, int remainingLength, 
 		char *brokerAddress = getConcatString(brokerAddressTmp2, connectionData.mqttPort); // Full MQTT broker address
 		free(brokerAddressTmp);
 		free(brokerAddressTmp2);
-		printf("%s\n", brokerAddress);
-		printf("%s\n", connectionData.username);
-		printf("%s\n", connectionData.password);
+	
 		MQTTClient mqttClient = connectToMQTTBroker(brokerAddress, connectionData.clientID, connectionData.username, connectionData.password);
 		if(mqttClient == NULL) {
 			connectedClient->isAuthenticated = false;
@@ -337,9 +341,10 @@ struct DecodedPacket decodePacket(char *packet, int packetLength, struct Client 
 				packetDecodeStatus.decodeStatus = DECODE_UNSUCCESS;
 			}
 		}
-	// } else if(packet[0] - 0 == HEARTBEAT) {
-	// 	packetDecodeStatus.packetType = HEARTBEAT;
-	// 	packetDecodeStatus.decodeStatus = DECODE_SUCCESS;
+	} else if(packet[0] - 0 == HEARTBEAT) {
+		packetDecodeStatus.packetType = HEARTBEAT;
+		packetDecodeStatus.class = HEARTBEAT_CLASS;
+		packetDecodeStatus.decodeStatus = DECODE_SUCCESS;
 	} else {
 		packetDecodeStatus.packetType = UNKNOWN_PACKET;
 		packetDecodeStatus.decodeStatus = DECODE_UNSUCCESS;
